@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매일 나를 돌보는 시간 — 명상 앱 목업</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:       #F5F0EA;
+    --card:     #FFFFFF;
+    --primary:  #5B8C7A;
+    --primary2: #7EAD9A;
+    --accent:   #D4956A;
+    --text:     #2D3436;
+    --text2:    #636E72;
+    --text3:    #B2BEC3;
+    --border:   #E8E2DA;
+    --nav-h:    64px;
+    --radius:   16px;
+  }
+
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: #D6CFC5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  /* ── Landing header ── */
+  .landing-header {
+    text-align: center;
+    margin-bottom: 32px;
+    color: #3D3530;
+  }
+  .landing-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .landing-header p  { font-size: 15px; color: #6B5F55; margin-top: 6px; }
+
+  /* ── Screen tabs ── */
+  .screen-tabs {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 28px;
+  }
+  .screen-tabs button {
+    padding: 8px 18px; border: none; border-radius: 20px;
+    background: rgba(255,255,255,0.5); color: #3D3530;
+    font-size: 13px; font-family: inherit; cursor: pointer;
+    transition: all .2s;
+  }
+  .screen-tabs button.active {
+    background: var(--primary); color: #fff; font-weight: 600;
+  }
+
+  /* ── Phone frame ── */
+  .phone-wrap {
+    position: relative;
+    width: 375px;
+    max-width: 100%;
+  }
+  .phone-frame {
+    background: #1A1A1A;
+    border-radius: 48px;
+    padding: 12px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
+  }
+  .phone-screen {
+    background: var(--bg);
+    border-radius: 38px;
+    overflow: hidden;
+    height: 780px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    height: 44px; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 24px;
+    background: var(--bg); flex-shrink: 0;
+    font-size: 12px; font-weight: 600; color: var(--text);
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+
+  /* ── Screens ── */
+  .screen { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+  .screen.active { display: flex; }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    height: var(--nav-h); background: var(--card);
+    display: flex; border-top: 1px solid var(--border);
+    flex-shrink: 0; border-radius: 0 0 38px 38px;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px; cursor: pointer; transition: color .2s;
+    color: var(--text3); font-size: 10px;
+  }
+  .nav-item.active { color: var(--primary); }
+  .nav-icon { font-size: 22px; }
+
+  /* ── Shared components ── */
+  .section-pad { padding: 0 20px; }
+  .page-title  { font-size: 22px; font-weight: 700; color: var(--text); }
+  .page-sub    { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 10px; }
+  .tag {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    background: rgba(91,140,122,0.12); color: var(--primary);
+  }
+
+  /* ──────────────────────────────────────────
+     SCREEN 1: 홈
+  ────────────────────────────────────────── */
+  #screen-home .greeting-area {
+    background: linear-gradient(160deg, #5B8C7A 0%, #7EAD9A 100%);
+    padding: 24px 20px 32px;
+    flex-shrink: 0;
+  }
+  #screen-home .greeting-area .date { font-size: 12px; color: rgba(255,255,255,0.7); }
+  #screen-home .greeting-area h2 { font-size: 22px; font-weight: 700; color: #fff; margin-top: 4px; }
+  #screen-home .greeting-area p  { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+
+  .big-btn {
+    width: 100%; padding: 18px; border: none; border-radius: var(--radius);
+    font-size: 16px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: transform .15s, box-shadow .15s;
+  }
+  .big-btn:active { transform: scale(0.97); }
+  .big-btn-primary {
+    background: linear-gradient(135deg, #5B8C7A, #7EAD9A);
+    color: #fff; box-shadow: 0 6px 20px rgba(91,140,122,0.35);
+  }
+
+  .today-stats { display: flex; gap: 10px; margin: 12px 0; }
+  .stat-card {
+    flex: 1; background: var(--card); border-radius: 14px;
+    padding: 14px 12px; text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .stat-val  { font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-unit { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  .streak-bar {
+    display: flex; gap: 6px; margin-top: 10px;
+  }
+  .streak-day {
+    flex: 1; height: 6px; border-radius: 3px; background: var(--border);
+  }
+  .streak-day.done { background: var(--primary); }
+
+  .friend-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .friend-row:last-child { border-bottom: none; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .friend-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .friend-sub  { font-size: 12px; color: var(--text2); }
+  .done-badge  {
+    margin-left: auto; background: rgba(91,140,122,0.12);
+    color: var(--primary); font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .pending-badge {
+    margin-left: auto; background: rgba(210,210,210,0.2);
+    color: var(--text3); font-size: 11px;
+    padding: 4px 10px; border-radius: 20px;
+  }
+
+  /* ──────────────────────────────────────────
+     SCREEN 2: 기록 & 인사이트
+  ────────────────────────────────────────── */
+  #screen-record .top-area {
+    background: linear-gradient(160deg, #4A7B6A 0%, #6A9D8A 100%);
+    padding: 24px 20px 28px; flex-shrink: 0;
+  }
+  #screen-record .top-area h2 { font-size: 22px; font-weight: 700; color: #fff; }
+  #screen-record .top-area p  { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-top: 10px; }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 12px; color: var(--text2);
+  }
+  .cal-day.done    { background: var(--primary); color: #fff; font-weight: 600; }
+  .cal-day.today   { border: 2px solid var(--primary); color: var(--primary); font-weight: 600; }
+  .cal-day.empty   { opacity: 0; }
+  .cal-hdr { font-size: 11px; color: var(--text3); text-align: center; }
+
+  .chart-bar-wrap { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-top: 10px; }
+  .chart-bar-col  { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .chart-bar {
+    width: 100%; border-radius: 4px 4px 0 0;
+    background: linear-gradient(to top, var(--primary), var(--primary2));
+    transition: height .4s;
+  }
+  .chart-lbl { font-size: 10px; color: var(--text3); }
+
+  .insight-pill {
+    background: rgba(91,140,122,0.08); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 8px;
+    border-left: 3px solid var(--primary);
+  }
+  .insight-pill .ico { font-size: 20px; }
+  .insight-pill .msg { font-size: 13px; color: var(--text); margin-top: 4px; line-height: 1.5; }
+  .insight-pill .val { font-size: 20px; font-weight: 700; color: var(--primary); }
+
+  /* ──────────────────────────────────────────
+     SCREEN 3: 명상 시작
+  ────────────────────────────────────────── */
+  #screen-meditate .med-hero {
+    background: linear-gradient(160deg, #3D6B5A 0%, #5B8C7A 60%, #7EAD9A 100%);
+    padding: 30px 20px 36px; text-align: center; flex-shrink: 0;
+  }
+  .timer-circle {
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 3px solid rgba(255,255,255,0.4);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .timer-num  { font-size: 42px; font-weight: 300; color: #fff; letter-spacing: -1px; }
+  .timer-sub  { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+  .mode-tabs { display: flex; gap: 8px; }
+  .mode-tab  {
+    flex: 1; padding: 12px; border-radius: 12px;
+    background: var(--card); text-align: center;
+    cursor: pointer; transition: all .2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .mode-tab.active { background: var(--primary); }
+  .mode-tab .ico   { font-size: 22px; }
+  .mode-tab .lbl   { font-size: 12px; margin-top: 4px; color: var(--text2); }
+  .mode-tab.active .lbl { color: #fff; }
+
+  .guide-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px; background: var(--card);
+    border-radius: 14px; margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer;
+  }
+  .guide-thumb {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+  }
+  .guide-info .g-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .guide-info .g-sub   { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .g-lock { margin-left: auto; font-size: 18px; }
+
+  /* health result */
+  .result-card {
+    background: linear-gradient(135deg, rgba(91,140,122,0.08), rgba(126,173,154,0.08));
+    border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
+    border: 1px solid rgba(91,140,122,0.15);
+  }
+  .result-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .result-row:last-child { border-bottom: none; }
+  .r-label { font-size: 13px; color: var(--text2); }
+  .r-val   { font-size: 14px; font-weight: 700; color: var(--text); }
+  .r-change-good { color: var(--primary); font-size: 13px; font-weight: 600; }
+
+  /* ──────────────────────────────────────────
+     SCREEN 4: 챌린지 & 친구
+  ────────────────────────────────────────── */
+  #screen-challenge .ch-hero {
+    background: linear-gradient(160deg, #5B7A8C 0%, #7A9BAD 100%);
+    padding: 24px 20px 28px; flex-shrink: 0;
+  }
+  #screen-challenge .ch-hero h2 { font-size: 22px; font-weight: 700; color: #fff; }
+  #screen-challenge .ch-hero p  { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+  .challenge-card {
+    background: var(--card); border-radius: var(--radius); padding: 18px;
+    margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .ch-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .ch-ico    { font-size: 28px; }
+  .ch-title  { font-size: 15px; font-weight: 700; color: var(--text); }
+  .ch-period { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .progress-bar-wrap { background: var(--border); border-radius: 4px; height: 8px; overflow: hidden; }
+  .progress-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(to right, var(--primary), var(--primary2));
+    transition: width .6s;
+  }
+  .ch-footer { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text2); }
+
+  .participants { display: flex; gap: -6px; margin-top: 10px; }
+  .p-avatar {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    margin-left: -6px;
+  }
+  .p-avatar:first-child { margin-left: 0; }
+
+  /* ──────────────────────────────────────────
+     SCREEN 5: 마이페이지
+  ────────────────────────────────────────── */
+  #screen-my .my-hero {
+    background: linear-gradient(160deg, #6B5B8C 0%, #8A7AAD 100%);
+    padding: 24px 20px 32px; text-align: center; flex-shrink: 0;
+  }
+  .my-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(255,255,255,0.2); font-size: 36px;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;
+  }
+  .my-name  { font-size: 18px; font-weight: 700; color: #fff; }
+  .my-level { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+  .point-box {
+    background: linear-gradient(135deg, var(--primary), var(--primary2));
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 12px; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .point-val { font-size: 32px; font-weight: 700; }
+  .point-lbl { font-size: 13px; opacity: .8; margin-top: 2px; }
+  .use-btn {
+    background: rgba(255,255,255,0.25); border: none; border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; color: #fff;
+    font-family: inherit; cursor: pointer;
+  }
+
+  .badge-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .badge-item { text-align: center; }
+  .badge-ico  { font-size: 30px; }
+  .badge-name { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+  .menu-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-ico   { font-size: 22px; width: 30px; text-align: center; }
+  .menu-label { font-size: 14px; color: var(--text); }
+  .menu-arrow { margin-left: auto; color: var(--text3); font-size: 18px; }
+
+  /* ── Notification dot (demo) ── */
+  .notif { position: relative; }
+  .notif::after {
+    content: ''; position: absolute; top: -2px; right: -2px;
+    width: 8px; height: 8px; border-radius: 50%; background: #E17055;
+    border: 1.5px solid var(--bg);
+  }
+
+  /* ── Scrollable content area ── */
+  .scroll-content { flex: 1; overflow-y: auto; padding: 16px 20px 24px; }
+  .scroll-content::-webkit-scrollbar { display: none; }
+
+  /* ── Pulse animation ── */
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+  }
+  .pulse { animation: pulse 3s ease-in-out infinite; }
+
+  /* ── Shimmer on heart rate ── */
+  @keyframes bpm {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.6; }
+  }
+  .bpm-live { animation: bpm 1.2s ease-in-out infinite; }
+
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    body { padding: 20px 0; }
+    .phone-wrap { width: 100%; }
+    .phone-frame { border-radius: 0; }
+    .phone-screen { border-radius: 0; }
+    .bottom-nav { border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="landing-header">
+  <h1>🌿 매일 나를 돌보는 시간</h1>
+  <p>명상 앱 UI 목업 · 기획서 v1.0 기반</p>
+</div>
+
+<div class="screen-tabs">
+  <button class="active" onclick="showScreen('home',this)">🏠 홈</button>
+  <button onclick="showScreen('record',this)">📊 기록</button>
+  <button onclick="showScreen('meditate',this)">🧘 명상</button>
+  <button onclick="showScreen('challenge',this)">🏆 챌린지</button>
+  <button onclick="showScreen('my',this)">👤 마이</button>
+</div>
+
+<div class="phone-wrap">
+  <div class="phone-frame">
+    <div class="phone-screen">
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>📶</span><span>🔋</span>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 1: 홈
+      ════════════════════════════ -->
+      <div id="screen-home" class="screen active">
+        <div id="screen-home" style="display:contents">
+          <div class="greeting-area" style="background:linear-gradient(160deg,#5B8C7A 0%,#7EAD9A 100%);padding:24px 20px 32px;flex-shrink:0;">
+            <div class="date">2026년 5월 9일 토요일</div>
+            <h2>안녕하세요, 지영님 👋</h2>
+            <p>오늘도 나를 위한 시간을 만들어볼까요?</p>
+          </div>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 오늘 명상 시작 -->
+          <button class="big-btn big-btn-primary pulse" style="margin-bottom:16px;" onclick="showScreen('meditate',null)">
+            🧘 오늘의 명상 시작하기
+          </button>
+
+          <!-- 오늘 통계 -->
+          <p class="card-title" style="margin-bottom:8px;">오늘의 현황</p>
+          <div class="today-stats">
+            <div class="stat-card">
+              <div class="stat-val">15</div>
+              <div class="stat-unit">분 명상</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">🔥 7</div>
+              <div class="stat-unit">일 연속</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">↓12%</div>
+              <div class="stat-unit">심박수</div>
+            </div>
+          </div>
+
+          <!-- 이번 주 스트릭 -->
+          <div class="card" style="margin-top:4px;">
+            <div class="card-title">이번 주 명상 기록</div>
+            <div class="streak-bar">
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day" style="background:var(--border);"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text3);">
+              <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+            </div>
+          </div>
+
+          <!-- 진행 중인 챌린지 -->
+          <div class="card">
+            <div class="card-title">진행 중인 챌린지</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <span style="font-size:22px;">🌙</span>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--text);">5월 매일 명상 챌린지</div>
+                <div style="font-size:12px;color:var(--text2);">9/31일 완료</div>
+              </div>
+              <span class="tag" style="margin-left:auto;">D-22</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:29%"></div>
+            </div>
+          </div>
+
+          <!-- 친구 현황 -->
+          <div class="card">
+            <div class="card-title">친구 오늘 현황</div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#FFF3E0;">🐰</div>
+              <div>
+                <div class="friend-name">민지</div>
+                <div class="friend-sub">🔥 12일 연속</div>
+              </div>
+              <span class="done-badge">완료 ✓</span>
+            </div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#E8F5E9;">🐻</div>
+              <div>
+                <div class="friend-name">수현</div>
+                <div class="friend-sub">🔥 5일 연속</div>
+              </div>
+              <span class="done-badge">완료 ✓</span>
+            </div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#E3F2FD;">🐼</div>
+              <div>
+                <div class="friend-name">태양</div>
+                <div class="friend-sub">🔥 3일 연속</div>
+              </div>
+              <span class="pending-badge">미완료</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 2: 기록 & 인사이트
+      ════════════════════════════ -->
+      <div id="screen-record" class="screen">
+        <div style="background:linear-gradient(160deg,#4A7B6A 0%,#6A9D8A 100%);padding:24px 20px 28px;flex-shrink:0;">
+          <h2 style="font-size:22px;font-weight:700;color:#fff;">기록 & 인사이트</h2>
+          <p style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px;">5월 누적 명상 · 135분</p>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 캘린더 -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span style="font-size:15px;font-weight:700;color:var(--text);">2026년 5월</span>
+              <span class="tag">🔥 7일 연속</span>
+            </div>
+            <div class="cal-grid">
+              <div class="cal-hdr">일</div><div class="cal-hdr">월</div><div class="cal-hdr">화</div>
+              <div class="cal-hdr">수</div><div class="cal-hdr">목</div><div class="cal-hdr">금</div><div class="cal-hdr">토</div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day done">1</div>
+              <div class="cal-day done">2</div>
+              <div class="cal-day done">3</div>
+              <div class="cal-day done">4</div>
+              <div class="cal-day done">5</div>
+              <div class="cal-day done">6</div>
+              <div class="cal-day done">7</div>
+              <div class="cal-day done">8</div>
+              <div class="cal-day today">9</div>
+              <div class="cal-day">10</div>
+              <div class="cal-day">11</div>
+              <div class="cal-day">12</div>
+              <div class="cal-day">13</div>
+              <div class="cal-day">14</div>
+              <div class="cal-day">15</div>
+              <div class="cal-day">16</div>
+            </div>
+          </div>
+
+          <!-- 심박수 그래프 -->
+          <div class="card">
+            <div class="card-title">이번 주 명상 후 심박수</div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar-col"><div class="chart-bar" style="height:45px;"></div><div class="chart-lbl">월</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:60px;"></div><div class="chart-lbl">화</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:50px;"></div><div class="chart-lbl">수</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:70px;"></div><div class="chart-lbl">목</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:55px;"></div><div class="chart-lbl">금</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:65px;"></div><div class="chart-lbl">토</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:20px;opacity:.3;"></div><div class="chart-lbl">일</div></div>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:right;">평균 62 bpm (명상 후)</div>
+          </div>
+
+          <!-- AI 인사이트 -->
+          <p class="card-title" style="margin-bottom:8px;">🤖 AI 인사이트</p>
+          <div class="insight-pill">
+            <div class="ico">❤️</div>
+            <div class="val">↓ 18%</div>
+            <div class="msg">이번 주 명상 후 심박수가 평균 <b>18% 낮아졌어요.</b> 꾸준한 명상이 효과를 내고 있어요!</div>
+          </div>
+          <div class="insight-pill">
+            <div class="ico">🌙</div>
+            <div class="msg">명상을 한 날의 수면 시간이 <b>평균 23분 더 길었어요.</b> 저녁 명상 습관이 수면에 도움이 되고 있어요.</div>
+          </div>
+          <div class="insight-pill">
+            <div class="ico">⭐</div>
+            <div class="msg">이번 달 <b>9일 연속</b> 달성! 이 속도라면 30일 마일스톤 뱃지를 획득할 수 있어요.</div>
+          </div>
+
+          <!-- 누적 통계 -->
+          <div class="card">
+            <div class="card-title">누적 기록</div>
+            <div style="display:flex;gap:0;text-align:center;">
+              <div style="flex:1;border-right:1px solid var(--border);">
+                <div style="font-size:22px;font-weight:700;color:var(--primary);">135분</div>
+                <div style="font-size:11px;color:var(--text2);margin-top:2px;">이번 달</div>
+              </div>
+              <div style="flex:1;border-right:1px solid var(--border);">
+                <div style="font-size:22px;font-weight:700;color:var(--primary);">9회</div>
+                <div style="font-size:11px;color:var(--text2);margin-top:2px;">명상 횟수</div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:22px;font-weight:700;color:var(--primary);">520P</div>
+                <div style="font-size:11px;color:var(--text2);margin-top:2px;">적립 포인트</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 3: 명상 시작
+      ════════════════════════════ -->
+      <div id="screen-meditate" class="screen">
+        <div style="background:linear-gradient(160deg,#3D6B5A 0%,#5B8C7A 60%,#7EAD9A 100%);padding:28px 20px 32px;text-align:center;flex-shrink:0;">
+          <div class="timer-circle pulse">
+            <div class="timer-num">15:00</div>
+            <div class="timer-sub">남은 시간</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:13px;color:rgba(255,255,255,0.8);">심박수</span>
+            <span class="bpm-live" style="font-size:18px;font-weight:700;color:#fff;">❤️ 72 bpm</span>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.6);">Apple Watch 연동 중</p>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 모드 선택 -->
+          <p class="card-title" style="margin-bottom:8px;">명상 모드</p>
+          <div class="mode-tabs" style="margin-bottom:16px;">
+            <div class="mode-tab active">
+              <div class="ico">⏱️</div>
+              <div class="lbl">자유 타이머</div>
+            </div>
+            <div class="mode-tab">
+              <div class="ico">🎧</div>
+              <div class="lbl">가이드 명상</div>
+            </div>
+            <div class="mode-tab">
+              <div class="ico">🌊</div>
+              <div class="lbl">자연 소리</div>
+            </div>
+          </div>
+
+          <!-- 완료 후 건강 결과 (데모) -->
+          <div class="card" style="border:1.5px solid rgba(91,140,122,0.2);">
+            <div class="card-title">🏁 오늘의 명상 결과 (예시)</div>
+            <div class="result-card" style="margin-top:8px;">
+              <div class="result-row">
+                <span class="r-label">명상 전 심박수</span>
+                <span class="r-val">78 bpm</span>
+              </div>
+              <div class="result-row">
+                <span class="r-label">명상 후 심박수</span>
+                <div>
+                  <span class="r-val">62 bpm</span>
+                  <span class="r-change-good"> ↓ 20%</span>
+                </div>
+              </div>
+              <div class="result-row">
+                <span class="r-label">스트레스 레벨</span>
+                <div>
+                  <span class="r-val" style="color:#E17055;">높음</span>
+                  <span style="color:var(--text3);"> → </span>
+                  <span class="r-val" style="color:var(--primary);">낮음</span>
+                </div>
+              </div>
+              <div class="result-row">
+                <span class="r-label">집중 시간</span>
+                <span class="r-val">15분</span>
+              </div>
+            </div>
+            <div style="text-align:center;font-size:13px;color:var(--primary);font-weight:600;padding:8px 0;">
+              🌿 오늘 몸이 많이 쉬었어요
+            </div>
+          </div>
+
+          <!-- 가이드 명상 콘텐츠 -->
+          <p class="card-title" style="margin-bottom:8px;">가이드 명상 콘텐츠</p>
+          <div class="guide-item">
+            <div class="guide-thumb" style="background:#E8F5E9;">🌙</div>
+            <div class="guide-info">
+              <div class="g-title">수면 유도 명상</div>
+              <div class="g-sub">20분 · 초급</div>
+            </div>
+            <span class="g-lock">▶️</span>
+          </div>
+          <div class="guide-item">
+            <div class="guide-thumb" style="background:#FFF3E0;">☀️</div>
+            <div class="guide-info">
+              <div class="g-title">아침 루틴 명상</div>
+              <div class="g-sub">10분 · 입문</div>
+            </div>
+            <span class="g-lock">▶️</span>
+          </div>
+          <div class="guide-item" style="opacity:0.6;">
+            <div class="guide-thumb" style="background:#F3E5F5;">🧠</div>
+            <div class="guide-info">
+              <div class="g-title">스트레스 완화 집중</div>
+              <div class="g-sub">30분 · 중급 · 300P</div>
+            </div>
+            <span class="g-lock">🔒</span>
+          </div>
+          <div class="guide-item" style="opacity:0.6;">
+            <div class="guide-thumb" style="background:#E3F2FD;">💧</div>
+            <div class="guide-info">
+              <div class="g-title">호흡 집중 명상</div>
+              <div class="g-sub">15분 · 중급 · 50P</div>
+            </div>
+            <span class="g-lock">🔒</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 4: 챌린지 & 친구
+      ════════════════════════════ -->
+      <div id="screen-challenge" class="screen">
+        <div style="background:linear-gradient(160deg,#5B7A8C 0%,#7A9BAD 100%);padding:24px 20px 28px;flex-shrink:0;">
+          <h2 style="font-size:22px;font-weight:700;color:#fff;">챌린지 & 친구</h2>
+          <p style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px;">함께하면 더 오래 지속돼요</p>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 내 챌린지 -->
+          <p class="card-title" style="margin-bottom:8px;">참여 중인 챌린지</p>
+
+          <div class="challenge-card">
+            <div class="ch-header">
+              <span class="ch-ico">🌙</span>
+              <div>
+                <div class="ch-title">5월 매일 명상 챌린지</div>
+                <div class="ch-period">2026.05.01 ~ 05.31 · 31일</div>
+              </div>
+              <span class="tag" style="margin-left:auto;">진행 중</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:29%"></div>
+            </div>
+            <div class="ch-footer">
+              <span>9 / 31일 완료</span>
+              <span>참여자 1,248명</span>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="ch-header">
+              <span class="ch-ico">👫</span>
+              <div>
+                <div class="ch-title">민지와 함께 7일 챌린지</div>
+                <div class="ch-period">2026.05.05 ~ 05.11 · 7일</div>
+              </div>
+              <span class="tag" style="background:rgba(212,149,106,0.15);color:var(--accent);">D-2</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:72%"></div>
+            </div>
+            <div class="ch-footer">
+              <span>5 / 7일 완료</span>
+              <div class="participants">
+                <div class="p-avatar" style="background:#FFF3E0;">🐰</div>
+                <div class="p-avatar" style="background:#E8F5E9;">🌿</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 추천 챌린지 -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <p class="card-title">추천 챌린지</p>
+            <span style="font-size:12px;color:var(--primary);cursor:pointer;">전체 보기 →</span>
+          </div>
+
+          <div class="challenge-card" style="border:1.5px dashed var(--border);">
+            <div class="ch-header">
+              <span class="ch-ico">🌅</span>
+              <div>
+                <div class="ch-title">아침 명상 14일 챌린지</div>
+                <div class="ch-period">매일 오전 7시 · 10분 이상</div>
+              </div>
+            </div>
+            <button style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;">참여하기 +100P</button>
+          </div>
+
+          <!-- 친구 목록 -->
+          <p class="card-title" style="margin-top:4px;margin-bottom:8px;">친구</p>
+          <div class="card">
+            <div class="friend-row">
+              <div class="avatar" style="background:#FFF3E0;">🐰</div>
+              <div>
+                <div class="friend-name">민지</div>
+                <div class="friend-sub">🔥 12일 연속 · 오늘 완료</div>
+              </div>
+              <span class="done-badge">✓</span>
+            </div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#E8F5E9;">🐻</div>
+              <div>
+                <div class="friend-name">수현</div>
+                <div class="friend-sub">🔥 5일 연속 · 오늘 완료</div>
+              </div>
+              <span class="done-badge">✓</span>
+            </div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#E3F2FD;">🐼</div>
+              <div>
+                <div class="friend-name">태양</div>
+                <div class="friend-sub">🔥 3일 연속 · 미완료</div>
+              </div>
+              <span class="pending-badge">—</span>
+            </div>
+            <div style="text-align:center;padding:12px 0 0;">
+              <span style="font-size:13px;color:var(--primary);cursor:pointer;font-weight:600;">+ 친구 초대하기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 5: 마이페이지
+      ════════════════════════════ -->
+      <div id="screen-my" class="screen">
+        <div style="background:linear-gradient(160deg,#6B5B8C 0%,#8A7AAD 100%);padding:24px 20px 32px;text-align:center;flex-shrink:0;">
+          <div class="my-avatar">🌿</div>
+          <div class="my-name">신지영</div>
+          <div class="my-level">🌳 나무 레벨 · 명상 135분</div>
+          <div style="display:flex;justify-content:center;gap:8px;margin-top:12px;">
+            <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;">🔥 7일 연속</span>
+            <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;">⭐ 챌린지 2개</span>
+          </div>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 포인트 -->
+          <div class="point-box">
+            <div>
+              <div class="point-val">520 P</div>
+              <div class="point-lbl">보유 포인트</div>
+            </div>
+            <button class="use-btn">교환소 →</button>
+          </div>
+
+          <!-- 뱃지 -->
+          <div class="card">
+            <div class="card-title">획득한 뱃지</div>
+            <div class="badge-grid">
+              <div class="badge-item"><div class="badge-ico">🌱</div><div class="badge-name">첫 명상</div></div>
+              <div class="badge-item"><div class="badge-ico">🔥</div><div class="badge-name">7일 연속</div></div>
+              <div class="badge-item"><div class="badge-ico">⌚</div><div class="badge-name">건강 연동</div></div>
+              <div class="badge-item"><div class="badge-ico">🏆</div><div class="badge-name">챌린지 완주</div></div>
+              <div class="badge-item" style="opacity:.3;"><div class="badge-ico">🌙</div><div class="badge-name">30일 달성</div></div>
+              <div class="badge-item" style="opacity:.3;"><div class="badge-ico">⭐</div><div class="badge-name">마일스톤</div></div>
+            </div>
+          </div>
+
+          <!-- 메뉴 -->
+          <div class="card">
+            <div class="menu-item">
+              <span class="menu-ico">📊</span>
+              <span class="menu-label">포인트 적립/사용 내역</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <span class="menu-ico">🔔</span>
+              <span class="menu-label">명상 알림 설정</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <span class="menu-ico">⌚</span>
+              <span class="menu-label">건강 기기 연동</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <span class="menu-ico">🔒</span>
+              <span class="menu-label">개인정보 및 보안</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <span class="menu-ico">💎</span>
+              <span class="menu-label">프리미엄 구독</span>
+              <span class="menu-arrow">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation -->
+      <div class="bottom-nav">
+        <div class="nav-item active" id="nav-home" onclick="showScreen('home',null)">
+          <span class="nav-icon">🏠</span>
+          <span>홈</span>
+        </div>
+        <div class="nav-item" id="nav-record" onclick="showScreen('record',null)">
+          <span class="nav-icon notif">📊</span>
+          <span>기록</span>
+        </div>
+        <div class="nav-item" id="nav-meditate" onclick="showScreen('meditate',null)">
+          <span class="nav-icon">🧘</span>
+          <span>명상</span>
+        </div>
+        <div class="nav-item" id="nav-challenge" onclick="showScreen('challenge',null)">
+          <span class="nav-icon">🏆</span>
+          <span>챌린지</span>
+        </div>
+        <div class="nav-item" id="nav-my" onclick="showScreen('my',null)">
+          <span class="nav-icon">👤</span>
+          <span>마이</span>
+        </div>
+      </div>
+
+    </div><!-- phone-screen -->
+  </div><!-- phone-frame -->
+</div><!-- phone-wrap -->
+
+<script>
+const screens = ['home','record','meditate','challenge','my'];
+
+function showScreen(name, tabBtn) {
+  screens.forEach(s => {
+    document.getElementById('screen-' + s).classList.remove('active');
+    const nav = document.getElementById('nav-' + s);
+    if (nav) nav.classList.remove('active');
+  });
+  document.getElementById('screen-' + name).classList.add('active');
+  const nav = document.getElementById('nav-' + name);
+  if (nav) nav.classList.add('active');
+
+  // tab buttons
+  if (tabBtn) {
+    document.querySelectorAll('.screen-tabs button').forEach(b => b.classList.remove('active'));
+    tabBtn.classList.add('active');
+  } else {
+    const idx = screens.indexOf(name);
+    const tabs = document.querySelectorAll('.screen-tabs button');
+    tabs.forEach(b => b.classList.remove('active'));
+    if (tabs[idx]) tabs[idx].classList.add('active');
+  }
+}
+
+// Mode tab toggle
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+// BPM animation
+let bpm = 72;
+setInterval(() => {
+  bpm = 70 + Math.floor(Math.random() * 6);
+  const el = document.querySelector('.bpm-live');
+  if (el) el.textContent = '❤️ ' + bpm + ' bpm';
+}, 2000);
+</script>
+</body>
+</html>
